@@ -2,7 +2,7 @@
     <application
         android:label="event_attendance_app"
         android:name="${applicationName}"
-        android:icon="@mipmap/ic_launcher">
+        android:icon="@mipmap/iec_logo">
         <activity
             android:name=".MainActivity"
             android:exported="true"
