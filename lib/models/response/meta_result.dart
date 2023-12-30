@@ -1,6 +1,6 @@
 import 'package:json_annotation/json_annotation.dart';
 
-part 'meta.g.dart';
+part 'meta_result.g.dart';
 
 @JsonSerializable()
 class MetaResult {
@@ -11,9 +11,10 @@ class MetaResult {
   @JsonKey(name: "message")
   String? message;
 
-
   MetaResult({this.code, this.status, this.message});
 
-  factory MetaResult.fromJson(Map<String, dynamic> json) => _$MetaResultFromJson(json);
+  factory MetaResult.fromJson(Map<String, dynamic> json) =>
+      _$MetaResultFromJson(json);
+
   Map<String, dynamic> toJson() => _$MetaResultToJson(this);
 }

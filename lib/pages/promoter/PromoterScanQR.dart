@@ -1,10 +1,18 @@
+import 'dart:convert';
+import 'dart:developer';
 import 'dart:io';
 
+import 'package:business_umbrella/models/response/meta.dart';
+import 'package:business_umbrella/network/event_api_service.dart';
 import 'package:business_umbrella/pages/promoter/PromoterHome.dart';
+import 'package:business_umbrella/utils/Utils.dart';
+import 'package:business_umbrella/utils/shared_prefrences.dart';
 import 'package:business_umbrella/widgets/custom_widgets.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:qr_code_scanner/qr_code_scanner.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+import '../../models/response/meta_result.dart';
 
 class PromoterScanQR extends StatefulWidget {
   const PromoterScanQR({super.key});
@@ -17,7 +25,7 @@ class _PromoterScanQRState extends State<PromoterScanQR> {
   final GlobalKey qrKey = GlobalKey(debugLabel: 'QR');
   Barcode? result;
   QRViewController? controller;
-
+  var eventService = EventApiService();
 
   @override
   void reassemble() {
@@ -27,7 +35,42 @@ class _PromoterScanQRState extends State<PromoterScanQR> {
     }
     controller!.resumeCamera();
   }
-@override
+
+  Future<MetaResponse> userAttendCalling(context, proToken, getGuestPhone) async {
+    return await eventService.userAttend(context, proToken, getGuestPhone);
+  }
+
+  sendUserAttend(context) {
+    Map<dynamic, dynamic> getData = jsonDecode(result!.code!);
+    var getGuestPhone =
+        getData.containsKey("Guest Phone") ? getData["Guest Phone"] : "";
+    var proToken = PreferenceUtils.getString(Utils.PROMOTOER_TOKIN_KEY);
+    userAttendCalling(context, proToken, getGuestPhone).then((value) {
+    log("GuestAttendAuthRequest: $proToken");
+      setState(() {
+        if (value.meta?.code == 200) {
+          Navigator.pushAndRemoveUntil(
+              context,
+              MaterialPageRoute(builder: (c) => PromoterHome()),
+              (route) => false);
+          CustomWidgets.buildBottomSheet(context, result!, value.meta!.message!);
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            // behavior: SnackBarBehavior.floating,
+            content: Text(value.meta!.message!),
+            duration: const Duration(milliseconds: 5000),
+            action: SnackBarAction(
+              label: "Dismiss",
+              onPressed: () {},
+            ),
+          ));
+        }
+      });
+      log("GuestAttendResponseMessage: ${value.meta?.message}");
+    });
+  }
+
+  @override
   void dispose() {
     super.dispose();
     if (Platform.isAndroid) {
@@ -54,14 +97,13 @@ class _PromoterScanQRState extends State<PromoterScanQR> {
               child: (result != null)
                   ? customButton(context)
                   : Text('Scan a code'),
-/*              Text(
-                  'Barcode Type: ${describeEnum(result!.format)}   Data: ${result!.code}')*/
             ),
           )
         ],
       ),
     );
   }
+
   void _onQRViewCreated(QRViewController controller) {
     this.controller = controller;
     controller.scannedDataStream.listen((scanData) {
@@ -82,8 +124,8 @@ class _PromoterScanQRState extends State<PromoterScanQR> {
         backgroundColor: Colors.blueAccent,
       ),
       onPressed: () {
-        Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (c) => const PromoterHome()), (route) => false);
-        CustomWidgets.buildBottomSheet(context, result!);
+        CustomWidgets.showLoaderDialog(context);
+        sendUserAttend(context);
       },
       child: const Text("Continue",
           style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),

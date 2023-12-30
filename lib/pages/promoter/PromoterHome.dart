@@ -1,12 +1,15 @@
+import 'dart:developer';
+
+import 'package:business_umbrella/network/event_api_service.dart';
 import 'package:business_umbrella/pages/our_goals.dart';
 import 'package:business_umbrella/pages/our_message.dart';
-import 'package:business_umbrella/widgets/custom_widgets.dart';
-import 'package:qr_code_scanner/qr_code_scanner.dart';
 import 'package:business_umbrella/pages/promoter/PromoterScanQR.dart';
+import 'package:business_umbrella/utils/Utils.dart';
+import 'package:business_umbrella/utils/shared_prefrences.dart';
+import 'package:business_umbrella/widgets/custom_widgets.dart';
 import 'package:flutter/material.dart';
 
 class PromoterHome extends StatefulWidget {
-
   const PromoterHome({super.key});
 
   @override
@@ -17,6 +20,8 @@ class _PromoterHomeState extends State<PromoterHome> {
   late Size size;
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey();
   final _formKey = GlobalKey<FormState>();
+  var eventService = EventApiService();
+
 
   Map _status = {
     'index': null,
@@ -444,12 +449,12 @@ class _PromoterHomeState extends State<PromoterHome> {
                       topLeft: Radius.circular(40),
                       topRight: Radius.circular(40))),
               child: SingleChildScrollView(
-                physics:  const PageScrollPhysics(),
+                physics: const PageScrollPhysics(),
                 child: Column(
                   children: [
-                  const SizedBox(
-                    height: 20,
-                  ),
+                    const SizedBox(
+                      height: 20,
+                    ),
                     _cards(),
                     const SizedBox(
                       height: 60,
@@ -462,9 +467,6 @@ class _PromoterHomeState extends State<PromoterHome> {
                                 builder: (c) => const PromoterScanQR()));
                       },
                       child: _scanQrButton(),
-                    ),
-                    SizedBox(
-                      height: 0,
                     ),
                     Align(
                       alignment: FractionalOffset.bottomCenter,
@@ -490,6 +492,17 @@ class _PromoterHomeState extends State<PromoterHome> {
         ],
       ),
     );
+  }
+
+  logout() async {
+    var promoterToken = PreferenceUtils.getString(Utils.PROMOTOER_TOKIN_KEY);
+    eventService.logout(context, promoterToken).then((value) {
+      if(value.meta?.code == 200) {
+        Navigator.pushNamed(context, '/prologin');
+      }
+      log("LogoutResponse: ${value.meta?.message}");
+    });
+
   }
 
   Widget _buildDrawer() {
@@ -539,7 +552,8 @@ class _PromoterHomeState extends State<PromoterHome> {
                     ),
                     InkWell(
                       onTap: () {
-                        Navigator.push(context, MaterialPageRoute(builder: (c) => OurMessage()));
+                        Navigator.push(context,
+                            MaterialPageRoute(builder: (c) => OurMessage()));
                       },
                       child: Row(
                         children: <Widget>[
@@ -562,7 +576,8 @@ class _PromoterHomeState extends State<PromoterHome> {
                     ),
                     InkWell(
                       onTap: () {
-                        Navigator.push(context, MaterialPageRoute(builder: (c) => OurGoals()));
+                        Navigator.push(context,
+                            MaterialPageRoute(builder: (c) => OurGoals()));
                       },
                       child: Row(
                         children: <Widget>[
@@ -585,7 +600,9 @@ class _PromoterHomeState extends State<PromoterHome> {
                     ),
                     InkWell(
                       onTap: () {
-                        Navigator.pushNamed(context, '/prologin');
+                        CustomWidgets.showLoaderDialog(context);
+                        PreferenceUtils.setBool(Utils.IS_PROMOTOER_LOGIN, false);
+                        logout();
                       },
                       child: Row(
                         children: <Widget>[
