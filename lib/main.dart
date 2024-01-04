@@ -6,7 +6,6 @@ import 'package:business_umbrella/pages/promoter/PromoterLogin.dart';
 import 'package:business_umbrella/utils/shared_prefrences.dart';
 import 'package:business_umbrella/utils/utils.dart';
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -51,9 +50,10 @@ class _MyHomePageState extends State<MyHomePage> {
   Widget build(BuildContext context) {
     size = MediaQuery.of(context).size;
     return AnimatedSplashScreen(
-      splash: "lib/assets/iec_logo.png",
+      splash: "lib/assets/iec_splash.png",
       nextScreen: buildInitScreen(),
       duration: 2000,
+      animationDuration: Duration(milliseconds: 1500),
       backgroundColor: Colors.white,
       splashIconSize: size.height,
     );
