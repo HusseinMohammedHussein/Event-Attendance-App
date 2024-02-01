@@ -1,8 +1,11 @@
 import 'dart:developer';
+import 'package:business_umbrella/models/request/promoter_register.dart';
 import 'package:business_umbrella/network/event_api_service.dart';
 import 'package:business_umbrella/pages/auth/new_password.dart';
+import 'package:business_umbrella/pages/promoter/PromoterLogin.dart';
 import 'package:business_umbrella/utils/shared_prefrences.dart';
 import 'package:business_umbrella/utils/utils.dart';
+import 'package:business_umbrella/widgets/custom_widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:fluttertoast/fluttertoast.dart';
@@ -10,14 +13,14 @@ import 'package:intl_phone_number_input/intl_phone_number_input.dart';
 
 import 'PromoterHome.dart';
 
-class PromoterLogin extends StatefulWidget {
-  const PromoterLogin({super.key});
+class PromoterRegister extends StatefulWidget {
+  const PromoterRegister({super.key});
 
   @override
-  State<PromoterLogin> createState() => _PromoterLoginState();
+  State<PromoterRegister> createState() => _PromoterRegisterState();
 }
 
-class _PromoterLoginState extends State<PromoterLogin> {
+class _PromoterRegisterState extends State<PromoterRegister> {
   late Size size;
   var eventService = EventApiService();
   bool isButtonClicked = false;
@@ -29,14 +32,28 @@ class _PromoterLoginState extends State<PromoterLogin> {
   PhoneNumber? initCountryIsoCode;
 
   final _formKey = GlobalKey<FormState>();
-  var phoneController = TextEditingController();
-  var passwordController = TextEditingController();
+  var nameCont = TextEditingController();
+  var emailCont = TextEditingController();
+  var phoneCont = TextEditingController();
+  var passwordCont = TextEditingController();
+  var addressCont = TextEditingController();
 
   var authInputFormatting = const InputDecoration(
     fillColor: Colors.white,
     filled: true,
     border: InputBorder.none,
   );
+
+  nameValidation() => (val) => val!.isEmpty ? "Name Can't Be Empty" : null;
+
+  emailValidation() => (val) => val!.isEmpty ? "Email Can't Be Empty" : null;
+
+  phoneValidation() => (val) => val!.isEmpty ? "Phone Can't Be Empty" : null;
+
+  passwordValidation() => (val) => val!.isEmpty ? "Password Can't Be Empty" : null;
+
+  addressValidation() =>
+      (val) => val!.isEmpty ? "Address Can't Be Empty" : null;
 
   @override
   void initState() {
@@ -48,85 +65,32 @@ class _PromoterLoginState extends State<PromoterLogin> {
     initCountryIsoCode = PhoneNumber(isoCode: 'SA');
   }
 
-  login(context) async {
-    await eventService.login(context, phoneController.text).then((value) {
-      if (value.meta?.code == 200) {
-        // todo: when response success show password input else show active account btn
-        isPhoneValied = true;
-        // todo: when set new password input redirect to login
-
-        PreferenceUtils.setString(Utils.PROMOTOER_TOKIN_KEY,
-            "Bearer ${value.data!.accessToken!.accessToken!}");
-        PreferenceUtils.setBool(Utils.IS_PROMOTOER_LOGIN, true);
-        ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text("${value.meta?.message}")));
-        log("PromoterToken: ${value.data?.accessToken?.accessToken.toString()}");
+  register(context) async {
+    RegisterRequest promoterRegister = RegisterRequest(
+      name: nameCont.text,
+      email: emailCont.text,
+      address: addressCont.text,
+      password: passwordCont.text,
+      phone: phoneCont.text,
+    );
+    await eventService.register(context, promoterRegister).then((value) {
+      if (value.code == 200) {
         setState(() {
           isButtonClicked = false;
+          CustomWidgets.buildToast("${value.message}", Colors.green);
           Navigator.pushAndRemoveUntil(
               context,
-              MaterialPageRoute(builder: (c) => const PromoterHome()),
+              MaterialPageRoute(builder: (c) => const PromoterLogin()),
               (route) => false);
         });
       } else {
         setState(() {
           isButtonClicked = false;
           isPhoneValied = false;
-          ScaffoldMessenger.of(context)
-              .showSnackBar(SnackBar(content: Text("${value.meta?.message}")));
+          CustomWidgets.buildToast("${value.message}", Colors.red);
         });
-        log("PromoterErrorResponse: ${value.meta?.message.toString()}");
       }
     });
-  }
-
-  loginBySharedPref(String phone) {
-    log("LoginPhoneControl: ${phoneController.text}");
-    log("LoginPhoneInput: $phone");
-    log("LoginPassControl: ${passwordController.text}");
-
-    // var phoneRes = eventService.loginPhoneBySharedPref(phone);
-    var phoneRes = "01122334455";
-    setState(() {
-      if (phone == phoneRes) {
-        isPhoneValied = true;
-      } else {
-        isPhoneValied = false;
-      }
-    });
-  }
-
-  checkPassword(String pass) {
-    log("LoginPassInput: $pass");
-    log("LoginPassword: ${passwordController.text}");
-    var getPassword = PreferenceUtils.getString(Utils.CHECK_New_Password);
-    log("LoginPasswordPreff: $getPassword");
-    setState(() {
-      log("getPassInput: $pass");
-      if (pass.isNotEmpty) {
-        // var passRes = eventService.loginPassBySharedPref(pass);
-        var passRes = "1234";
-        if (pass == passRes) {
-          isPassValid = true;
-        } else {
-          isPassValid = false;
-        }
-      }
-    });
-  }
-
-  String passwordValidate(input) {
-    var response;
-    var getPass = PreferenceUtils.getString(Utils.CHECK_New_Password);
-    log("GetNewPassword: $getPass");
-    log("LoginPassword: ${passwordController.text}");
-
-    if (input != null && input != "" && input == getPass) {
-      response = "";
-    } else {
-      response = "password is not valid!";
-    }
-    return response;
   }
 
   @override
@@ -143,7 +107,7 @@ class _PromoterLoginState extends State<PromoterLogin> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: <Widget>[
               Text(
-                'Login',
+                'Register',
                 style: TextStyle(
                     color: Colors.white,
                     fontSize: 35,
@@ -162,16 +126,8 @@ class _PromoterLoginState extends State<PromoterLogin> {
                         topLeft: Radius.circular(50),
                         topRight: Radius.circular(50))),
                 child: Center(
-                    child: Column(
-                  children: [
-                    const SizedBox(
-                      height: 50,
-                    ),
-                    changeNameForm(),
-                    const SizedBox(
-                      height: 20,
-                    ),
-                  ],
+                    child: SingleChildScrollView(
+                  child: registerFormData(),
                 ))),
           ),
         ],
@@ -184,7 +140,16 @@ class _PromoterLoginState extends State<PromoterLogin> {
     size: 50.0,
   );
 
-  Widget changeNameForm() {
+  Function get onActiveAccountTapFun => () {
+        if (_formKey.currentState!.validate()) {
+          setState(() {
+            Navigator.push(context,
+                MaterialPageRoute(builder: (c) => const NewPassword()));
+          });
+        }
+      };
+
+  Widget registerFormData() {
     log("AfterBtnClicked:  $isButtonClicked");
     return Form(
       key: _formKey,
@@ -211,6 +176,32 @@ class _PromoterLoginState extends State<PromoterLogin> {
                     decoration: BoxDecoration(
                         border: Border(
                             bottom: BorderSide(color: Colors.grey[300]!))),
+                    child: TextFormField(
+                      decoration: authInputFormatting.copyWith(
+                          hintText: "Name",
+                          hintStyle: const TextStyle(color: Colors.black26)),
+                      validator: nameValidation(),
+                      controller: nameCont,
+                    ),
+                  ),
+                  Container(
+                    padding: const EdgeInsets.all(10.0),
+                    decoration: BoxDecoration(
+                        border: Border(
+                            bottom: BorderSide(color: Colors.grey[300]!))),
+                    child: TextFormField(
+                      decoration: authInputFormatting.copyWith(
+                          hintText: "Email",
+                          hintStyle: const TextStyle(color: Colors.black26)),
+                      validator: emailValidation(),
+                      controller: emailCont,
+                    ),
+                  ),
+                  Container(
+                    padding: const EdgeInsets.all(10.0),
+                    decoration: BoxDecoration(
+                        border: Border(
+                            bottom: BorderSide(color: Colors.grey[300]!))),
                     child: InternationalPhoneNumberInput(
                       onInputChanged: (PhoneNumber value) {
                         log("PhoneNumber: ${value.isoCode}");
@@ -220,62 +211,36 @@ class _PromoterLoginState extends State<PromoterLogin> {
                       // autoFocus: true,
                       keyboardType: TextInputType.phone,
                       initialValue: initCountryIsoCode,
-                      validator: (val) =>
-                          val!.isEmpty ? "Phone Can't Be Empty" : null,
-                      textFieldController: phoneController,
+                      validator: phoneValidation(),
+                      textFieldController: phoneCont,
                     ),
                   ),
-                  isButtonClicked
-                      ? isPhoneValied
-                          ? Container(
-                              padding: const EdgeInsets.all(10.0),
-                              decoration: BoxDecoration(
-                                  border: Border(
-                                      bottom: BorderSide(
-                                          color: Colors.grey[300]!))),
-                              child: TextFormField(
-                                keyboardType: TextInputType.phone,
-                                decoration: authInputFormatting.copyWith(
-                                    hintText: "Password",
-                                    hintStyle:
-                                        const TextStyle(color: Colors.black26)),
-                                validator: (val) => passwordValidate(val),
-                                controller: passwordController,
-                              ),
-                            )
-                          : GestureDetector(
-                              onTap: () {
-                                if (_formKey.currentState!.validate()) {
-                                  setState(() {
-                                    Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                            builder: (c) =>
-                                                const NewPassword()));
-                                  });
-                                }
-                              },
-                              child: Container(
-                                height: 50,
-                                margin: const EdgeInsets.symmetric(
-                                    horizontal: 10, vertical: 20),
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(50),
-                                  color: Colors.green,
-                                ),
-                                child: const Center(
-                                  child: Text(
-                                    "Active Your Account",
-                                    style: TextStyle(
-                                        color: Colors.white,
-                                        fontWeight: FontWeight.bold,
-                                        letterSpacing: 1.5,
-                                        fontSize: 17),
-                                  ),
-                                ),
-                              ),
-                            )
-                      : Container(),
+                  Container(
+                    padding: const EdgeInsets.all(10.0),
+                    decoration: BoxDecoration(
+                        border: Border(
+                            bottom: BorderSide(color: Colors.grey[300]!))),
+                    child: TextFormField(
+                      decoration: authInputFormatting.copyWith(
+                          hintText: "Password",
+                          hintStyle: const TextStyle(color: Colors.black26)),
+                      validator: passwordValidation(),
+                      controller: passwordCont,
+                    ),
+                  ),
+                  Container(
+                    padding: const EdgeInsets.all(10.0),
+                    decoration: BoxDecoration(
+                        border: Border(
+                            bottom: BorderSide(color: Colors.grey[300]!))),
+                    child: TextFormField(
+                      decoration: authInputFormatting.copyWith(
+                          hintText: "Address",
+                          hintStyle: const TextStyle(color: Colors.black26)),
+                      validator: addressValidation(),
+                      controller: addressCont,
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -285,116 +250,75 @@ class _PromoterLoginState extends State<PromoterLogin> {
             Row(
               children: <Widget>[
                 Expanded(
-                  child: /*isButtonClicked
-                      ? Container(
-                          height: 50,
-                          margin: const EdgeInsets.symmetric(
-                              horizontal: 10, vertical: 20),
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(50),
-                            color: Colors.green,
-                          ),
-                          child: spinKit)
-                      : */
+                    child: Column(
+                  children: [
+                    isButtonClicked
+                        ? Container(
+                            height: 50,
+                            margin: const EdgeInsets.symmetric(
+                                horizontal: 10, vertical: 20),
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(50),
+                              color: Colors.green,
+                            ),
+                            child: spinKit)
+                        : GestureDetector(
+                            onTap: () {
+                              if (_formKey.currentState!.validate()) {
+                                setState(() {
+                                  isButtonClicked = true;
+                                });
 
-                      isPhoneValied
-                          ? GestureDetector(
-                              onTap: () {
-                                // if (_formKey.currentState!.validate()) {
-                                  setState(() {
-                                    isButtonClicked = true;
-                                    log("PhoneNum: ${phoneController.text}");
-                                    log("IsPhoneValid: $isPhoneValied");
-                                    log("IsPassValid: ${passwordController.text}");
-
-                                    if (passwordController.text.isNotEmpty) {
-                                      checkPassword(passwordController.text);
-
-                                      if (isPassValid) {
-                                        Fluttertoast.showToast(
-                                            msg: "Login Success",
-                                            toastLength: Toast.LENGTH_LONG,
-                                            gravity: ToastGravity.BOTTOM,
-                                            timeInSecForIosWeb: 1,
-                                            backgroundColor: Colors.green,
-                                            textColor: Colors.white,
-                                            fontSize: 16.0);
-                                        Navigator.push(
-                                            context,
-                                            MaterialPageRoute(
-                                                builder: (c) => const PromoterHome()));
-                                      } else {
-                                        Fluttertoast.showToast(
-                                            msg: "Verify you account",
-                                            toastLength: Toast.LENGTH_LONG,
-                                            gravity: ToastGravity.BOTTOM,
-                                            timeInSecForIosWeb: 1,
-                                            backgroundColor: Colors.red,
-                                            textColor: Colors.white,
-                                            fontSize: 16.0);
-                                      }
-                                    }
-                                  });
-                                  // login(context);
-                                // }
-                              },
-                              child: Container(
-                                height: 50,
-                                margin: const EdgeInsets.symmetric(
-                                    horizontal: 10, vertical: 20),
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(50),
-                                  color: Colors.green,
-                                ),
-                                child: const Center(
-                                  child: Text(
-                                    "Login",
-                                    style: TextStyle(
-                                        color: Colors.white,
-                                        fontWeight: FontWeight.bold,
-                                        letterSpacing: 1.5,
-                                        fontSize: 17),
-                                  ),
-                                ),
+                                register(context);
+                              }
+                            },
+                            child: Container(
+                              height: 50,
+                              margin: const EdgeInsets.symmetric(
+                                  horizontal: 10, vertical: 20),
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(50),
+                                color: Colors.green,
                               ),
-                            )
-                          : GestureDetector(
-                              onTap: () {
-                                // if (_formKey.currentState!.validate()) {
-                                  setState(() {
-                                    isButtonClicked = true;
-                                    log("PhoneNum: ${phoneController.text}");
-                                    log("IsPhoneValid: $isPhoneValied");
-                                    log("IsPassValid: ${passwordController.text}");
-
-                                    if (phoneController.text.isNotEmpty) {
-                                      loginBySharedPref(phoneController.text);
-                                    }
-                                  });
-                                  // login(context);
-                                // }
-                              },
-                              child: Container(
-                                height: 50,
-                                margin: const EdgeInsets.symmetric(
-                                    horizontal: 10, vertical: 20),
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(50),
-                                  color: Colors.green,
-                                ),
-                                child: const Center(
-                                  child: Text(
-                                    "Continue",
-                                    style: TextStyle(
-                                        color: Colors.white,
-                                        fontWeight: FontWeight.bold,
-                                        letterSpacing: 1.5,
-                                        fontSize: 17),
-                                  ),
+                              child: const Center(
+                                child: Text(
+                                  "Continue",
+                                  style: TextStyle(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.bold,
+                                      letterSpacing: 1.5,
+                                      fontSize: 17),
                                 ),
                               ),
                             ),
-                ),
+                          ),
+                    GestureDetector(
+                      onTap: () {
+                        Navigator.push(context,
+                            MaterialPageRoute(builder: (c) => PromoterLogin()));
+                      },
+                      child: Container(
+                        height: 50,
+                        margin: const EdgeInsets.symmetric(
+                            horizontal: 10, vertical: 20),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(50),
+                          color: Colors.green,
+                        ),
+                        child: const Center(
+                          child: Text(
+                            "Already have account?",
+                            style: TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                                letterSpacing: 1.5,
+                                fontSize: 17),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                )),
               ],
             ),
             const SizedBox(height: 30),

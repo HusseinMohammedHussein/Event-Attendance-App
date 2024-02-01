@@ -2,7 +2,6 @@ import 'dart:convert';
 import 'dart:developer';
 import 'dart:io';
 
-import 'package:business_umbrella/models/response/meta.dart';
 import 'package:business_umbrella/network/event_api_service.dart';
 import 'package:business_umbrella/pages/promoter/PromoterHome.dart';
 import 'package:business_umbrella/utils/Utils.dart';
@@ -10,7 +9,6 @@ import 'package:business_umbrella/utils/shared_prefrences.dart';
 import 'package:business_umbrella/widgets/custom_widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:qr_code_scanner/qr_code_scanner.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../models/response/meta_result.dart';
 
@@ -36,37 +34,29 @@ class _PromoterScanQRState extends State<PromoterScanQR> {
     controller!.resumeCamera();
   }
 
-  Future<MetaResponse> userAttendCalling(context, proToken, getGuestPhone) async {
+  Future<MetaResult> userAttendCalling(context, proToken, getGuestPhone) async {
     return await eventService.userAttend(context, proToken, getGuestPhone);
   }
 
-  sendUserAttend(context) {
+  sendUserAttend(context) async {
     Map<dynamic, dynamic> getData = jsonDecode(result!.code!);
     var getGuestPhone =
         getData.containsKey("Guest Phone") ? getData["Guest Phone"] : "";
     var proToken = PreferenceUtils.getString(Utils.PROMOTOER_TOKIN_KEY);
-    userAttendCalling(context, proToken, getGuestPhone).then((value) {
+    await eventService.userAttend(context, proToken, getGuestPhone).then((value) {
     log("GuestAttendAuthRequest: $proToken");
       setState(() {
-        if (value.meta?.code == 200) {
+        if (value.code == 200) {
           Navigator.pushAndRemoveUntil(
               context,
-              MaterialPageRoute(builder: (c) => PromoterHome()),
+              MaterialPageRoute(builder: (c) => const PromoterHome()),
               (route) => false);
-          CustomWidgets.buildBottomSheet(context, result!, value.meta!.message!);
+          CustomWidgets.buildBottomSheet(context, result!, value.message!);
         } else {
-          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-            // behavior: SnackBarBehavior.floating,
-            content: Text(value.meta!.message!),
-            duration: const Duration(milliseconds: 5000),
-            action: SnackBarAction(
-              label: "Dismiss",
-              onPressed: () {},
-            ),
-          ));
+          CustomWidgets.buildToast("${value.message}", Colors.red);
         }
       });
-      log("GuestAttendResponseMessage: ${value.meta?.message}");
+      log("GuestAttendResponseMessage: ${value.message}");
     });
   }
 

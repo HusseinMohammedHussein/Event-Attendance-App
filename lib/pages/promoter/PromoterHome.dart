@@ -496,13 +496,19 @@ class _PromoterHomeState extends State<PromoterHome> {
 
   logout() async {
     var promoterToken = PreferenceUtils.getString(Utils.PROMOTOER_TOKIN_KEY);
-    eventService.logout(context, promoterToken).then((value) {
-      if(value.meta?.code == 200) {
-        Navigator.pushNamed(context, '/prologin');
-      }
-      log("LogoutResponse: ${value.meta?.message}");
-    });
-
+    log("LogoutRequestToken: $promoterToken");
+    if (promoterToken.isNotEmpty) {
+      eventService.logout(context, promoterToken).then((value) {
+        if (value.meta?.code == 200) {
+          PreferenceUtils.setBool(Utils.IS_PROMOTOER_LOGIN, false);
+          PreferenceUtils.setString(Utils.PROMOTOER_TOKIN_KEY, "");
+          Navigator.pushNamed(context, '/prologin');
+        }
+        log("LogoutResponse: ${value.meta?.message}");
+      });
+    } else {
+      Navigator.pushNamed(context, '/prologin');
+    }
   }
 
   Widget _buildDrawer() {
@@ -601,7 +607,6 @@ class _PromoterHomeState extends State<PromoterHome> {
                     InkWell(
                       onTap: () {
                         CustomWidgets.showLoaderDialog(context);
-                        PreferenceUtils.setBool(Utils.IS_PROMOTOER_LOGIN, false);
                         logout();
                       },
                       child: Row(

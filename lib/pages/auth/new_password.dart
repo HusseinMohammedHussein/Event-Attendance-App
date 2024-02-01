@@ -1,28 +1,28 @@
 import 'dart:developer';
 import 'package:business_umbrella/network/event_api_service.dart';
+import 'package:business_umbrella/pages/promoter/PromoterLogin.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 
-class OtpValidation extends StatefulWidget {
-  const OtpValidation({super.key});
+class NewPassword extends StatefulWidget {
+  const NewPassword({super.key});
 
   @override
-  State<OtpValidation> createState() => _OtpValidationState();
+  State<NewPassword> createState() => _NewPasswordState();
 }
 
-class _OtpValidationState extends State<OtpValidation> {
+class _NewPasswordState extends State<NewPassword> {
   late Size size;
   var eventService = EventApiService();
-  var otpController = TextEditingController();
+  var passwordController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
   bool isButtonClicked = false;
-
 
   final spinKit = const SpinKitPouringHourGlassRefined(
     color: Colors.white,
     size: 50.0,
   );
-
 
   var authInputFormatting = const InputDecoration(
     fillColor: Colors.white,
@@ -30,9 +30,46 @@ class _OtpValidationState extends State<OtpValidation> {
     border: InputBorder.none,
   );
 
+  newPasswordService() {
+    log("new_password: ${passwordController.text}");
+    var response = eventService.setNewPassword(passwordController.text);
+    isButtonClicked = true;
+    Future.delayed(const Duration(milliseconds: 2000)).then((value) {
+      log("DurationFinish: $value");
+      log("Response: $response");
+      setState(() {
+        if (response) {
+          isButtonClicked = false;
+          Fluttertoast.showToast(
+              msg: "Set New Password Success",
+              toastLength: Toast.LENGTH_LONG,
+              gravity: ToastGravity.BOTTOM,
+              timeInSecForIosWeb: 1,
+              backgroundColor: Colors.green,
+              textColor: Colors.white,
+              fontSize: 16.0
+          );
+          Navigator.push(context,
+              MaterialPageRoute(builder: (c) => const PromoterLogin()));
+        } else {
+          isButtonClicked = false;
+          Fluttertoast.showToast(
+              msg: "Set Correct Password",
+              toastLength: Toast.LENGTH_LONG,
+              gravity: ToastGravity.BOTTOM,
+              timeInSecForIosWeb: 1,
+              backgroundColor: Colors.red,
+              textColor: Colors.white,
+              fontSize: 16.0
+          );
+        }
+      });
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
+    log("isBtnClicked: $isButtonClicked");
     size = MediaQuery.of(context).size;
 
     return Scaffold(
@@ -46,7 +83,7 @@ class _OtpValidationState extends State<OtpValidation> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: <Widget>[
               Text(
-                'OTP Validation',
+                'New Password',
                 style: TextStyle(
                     color: Colors.white,
                     fontSize: 35,
@@ -82,7 +119,6 @@ class _OtpValidationState extends State<OtpValidation> {
     ));
   }
 
-
   Widget changeNameForm() {
     return Form(
       key: _formKey,
@@ -116,10 +152,12 @@ class _OtpValidationState extends State<OtpValidation> {
                               bottom: BorderSide(color: Colors.grey[300]!))),
                       child: TextFormField(
                         keyboardType: TextInputType.phone,
-                        decoration:
-                        authInputFormatting.copyWith(hintText: "OTP Code", hintStyle: const TextStyle(color: Colors.black26)),
+                        controller: passwordController,
+                        decoration: authInputFormatting.copyWith(
+                            hintText: "New Password",
+                            hintStyle: const TextStyle(color: Colors.black26)),
                         validator: (val) =>
-                        val!.isEmpty ? "OTP Can't Be Empty" : null,
+                            val!.isEmpty ? "password Can't Be Empty" : null,
                       ),
                     ),
                   ),
@@ -148,6 +186,7 @@ class _OtpValidationState extends State<OtpValidation> {
                               setState(() {
                                 isButtonClicked = true;
                               });
+                              newPasswordService();
                             }
                           },
                           child: Container(
