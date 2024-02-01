@@ -2,7 +2,7 @@ import 'package:json_annotation/json_annotation.dart';
 
 import 'meta_result.dart';
 
-part 'meta.g.dart';
+part 'meta_response.g.dart';
 
 @JsonSerializable()
 class MetaResponse {
@@ -12,7 +12,7 @@ class MetaResponse {
   MetaResponse({this.meta});
 
   factory MetaResponse.fromJson(Map<String, dynamic> json) =>
-      _$MetaDataFromJson(json);
+      _$MetaResponseFromJson(json);
 
-  Map<String, dynamic> toJson() => _$MetaDataToJson(this);
+  Map<String, dynamic> toJson() => _$MetaResponseToJson(this);
 }

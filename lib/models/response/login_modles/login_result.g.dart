@@ -7,16 +7,18 @@ part of 'login_result.dart';
 // **************************************************************************
 
 LoginResult _$LoginResultFromJson(Map<String, dynamic> json) => LoginResult(
-      meta: json['meta'] == null
-          ? null
-          : MetaResult.fromJson(json['meta'] as Map<String, dynamic>),
       data: json['data'] == null
           ? null
           : LoginData.fromJson(json['data'] as Map<String, dynamic>),
-    );
+    )
+      ..code = json['code'] as int?
+      ..status = json['status'] as String?
+      ..message = json['message'] as String?;
 
 Map<String, dynamic> _$LoginResultToJson(LoginResult instance) =>
     <String, dynamic>{
-      'meta': instance.meta,
+      'code': instance.code,
+      'status': instance.status,
+      'message': instance.message,
       'data': instance.data,
     };

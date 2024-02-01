@@ -6,13 +6,11 @@ import 'login_data.dart';
 part 'login_result.g.dart';
 
 @JsonSerializable()
-class LoginResult {
-  @JsonKey(name: "meta")
-  MetaResult? meta;
+class LoginResult extends MetaResult {
   @JsonKey(name: "data")
   LoginData? data;
 
-  LoginResult({this.meta, this.data});
+  LoginResult({this.data});
 
   factory LoginResult.fromJson(Map<String, dynamic> json) =>
       _$LoginResultFromJson(json);
