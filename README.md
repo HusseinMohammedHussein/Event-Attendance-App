@@ -20,7 +20,10 @@ QR was send in user registered email.
     - [AnimatedSplashScreen][AnimatedSplashScreen lib]
 
 ### Review
-<p align="center"><img src="IEC_EventAttendanceApp\lib\assets\review\BU.jpg" alt="BU App"></p>
+<p align="center"><img src="https://github.com/HusseinMohammedHussein/Event-Attendance-App/blob/Dev-2.0.0/lib/assets/review/BU.jpg" alt="BU App"></p>
+
+
+
 
 
     [http lib]: https://pub.dev/packages/http
