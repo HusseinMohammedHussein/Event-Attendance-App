@@ -1,7 +1,7 @@
 # IEC Event Attendance App (Business Umbrella)
 
 ## Description
-The [IEC](https://umbrella.sa/site/event/IEC) Event Attendance App is a mobile application designed for the INTERNATIONAL E-COMMERCE EXPO (IEC), an annual international trade show and exhibition organized by the Saudi Arabian Chamber of Commerce is a business umbrella organization for the International Electronics Show (IES).
+The [IEC](https://umbrella.sa/site/event/IEC) Event Attendance App is designed specifically for the INTERNATIONAL E-COMMERCE EXPO (IEC), an annual international trade show and exhibition organized by the Saudi Arabian Chamber of Commerce is a business umbrella organization for the International Electronics Show (IES).
 This is a application that allows Promoters to register invited user to event, by Scan QR.
 QR was send in user registered email.
 
@@ -19,8 +19,8 @@ QR was send in user registered email.
 - [FlutterNativeSplash][FlutterNativeSplash lib]
 - [AnimatedSplashScreen][AnimatedSplashScreen lib]
 
-### Review
-<p align="center"><img src="https://github.com/HusseinMohammedHussein/Event-Attendance-App/blob/Dev-2.0.0/lib/assets/review/BU.jpg" alt="BU App"></p>
+<!--### Review
+<p align="center"><img src="https://github.com/HusseinMohammedHussein/Event-Attendance-App/blob/Dev-2.0.0/lib/assets/review/BU.jpg" alt="BU App"></p>-->
 
 
 
